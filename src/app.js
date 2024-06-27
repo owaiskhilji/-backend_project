@@ -13,4 +13,17 @@ app.use(express.json({limit:"16kb"}))
 app.use(express.urlencoded({expended : true , limit:"16kb"})) // expended object me nested object bna ta h 
 // kbh ap server pr pdf file ya image store krna chate h 
 app.use(express.static("Public"))
+app.use(cookieParser())
+
+
+// Routes import
+import userRouter from "./routes/user.routes.js"
+// ROUTES 
+// routes ko use krne k liye hm plhy app.get ka use kr rahe the mgr yha ese nh kr skte kio k os sari files ek jaga thi lkn ab hm me file seperate kr di to is k  liye hme midderwaer ka use krna hoga 
+app.use("api/v1/users",userRouter)
+
+
+
+
+
 export { app }

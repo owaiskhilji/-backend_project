@@ -1,10 +1,11 @@
 // ye tareeka promise wala h
-const asyncHendler =(reqHendler) =>{
-    return (req,res,next)=>{
-        Promise.resolve(reqHendler(req,res,next))
-        .catch((err)=>next(err))
-    }
-}
+const asyncHendler = (reqHendler) => {
+  return (req, res, next) => {
+      Promise.resolve(reqHendler(req, res, next)).catch((err) => next("asyncHendler error",err));
+  };
+};
+export default asyncHendler;
+
 
 
 // ye tareeka trycatch wala h 
@@ -22,5 +23,3 @@ const asyncHendler =(reqHendler) =>{
 //     }    
 // }
 
-
-export default asyncHendler
