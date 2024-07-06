@@ -33,7 +33,7 @@ import dotenv from "dotenv"
 import connectDB from "./db/db.index.js"
 import { app } from "./app.js"
 dotenv.config({
-    path: "./env"
+    path: "./.env"
 })
 const PORT = process.env.PORT_APP || 5000
 

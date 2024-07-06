@@ -1,6 +1,6 @@
 import mongoose ,{Schema} from "mongoose";
 import bcrypt from "bcrypt"
-import {jwt } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 const userSchema = new Schema(
     {
@@ -28,10 +28,9 @@ const userSchema = new Schema(
             type : String, // cloudinary URL
         required : true
         },
-        copyImage : {
-            type : String, // cloudinary URL
-        required : true
-        },
+        coverImage : {
+            type : String // cloudinary URL
+                },
         password :{
             type : String,
             required : [true ," password is requried"]
@@ -41,12 +40,18 @@ const userSchema = new Schema(
                 type : Schema.Types.ObjectId,
                 ref : "Video"
             }
-        ]
-     }
+        ],
+        refreshToken:{
+            type : String
+        }
+
+    }
 ,{timestamps:true})
-userSchema.pre("save",function(next){
+
+
+userSchema.pre("save",async function(next){
     if(!this.isModified("password")) return next()
-    this.password = bcrypt.hash(this.password,10) // do parameter leta h phla kiso ko hsh krna h dusra kitna round krna h
+    this.password =await bcrypt.hash(this.password,10) // do parameter leta h phla kiso ko hsh krna h dusra kitna round krna h
     next()
 })
 // kuxh ese methods ka use krna hoga take user ko import krae to user se pouch le k pasword shi ya nh
