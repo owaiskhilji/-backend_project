@@ -18,7 +18,7 @@ import { v2 as cloudinary } from 'cloudinary';
         resource_type : 'auto'
        })
     //    file has been uploaded
-    // console.log(`fiile is uploaded ${response.url}`)
+     console.log(`fiile is uploaded ${response}`)
     fs.unlinkSync (uploadfilePath)
     return response
         } catch (error) {

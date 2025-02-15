@@ -57,35 +57,35 @@ userSchema.pre("save",async function(next){
 // kuxh ese methods ka use krna hoga take user ko import krae to user se pouch le k pasword shi ya nh
 // is me ap custom method bh bna skte ho 
 userSchema.methods.inCorrectPassword = async function(password){
-    // bcrpt agr password hasg kr ta h to whi check bh krta h
+    // bcrpt agr password hash kr ta h to whi check bh krta h
     return await bcrypt.compare(password,this.password)   
 }
 // ACCESS TOKEN
 userSchema.methods.generateAccessToken = function(){
-    jwt.sign(
+    return jwt.sign(
         // payload
         {
-            _id : this.id, // mondoosebd se get kia h
+            _id : this.id, // mongoebd se get kia h
             username : this.username,
             email : this.email,
             fullName : this.fullName,
         },
         process.env.ACCESS_TOKEN_SECRET,
         {
-            expireIn : process.env.ACCESS_TOKEN_EXPIRY 
+            expiresIn : process.env.ACCESS_TOKEN_EXPIRY 
         }
     )
 }
-//REFRESH ACCESS TOKEN
+// REFRESH ACCESS TOKEN
 userSchema.methods.generaterefreshAccessToken = function(){
-    jwt.sign(
+    return jwt.sign(
         // payload
         {
-            _id : this.id, // mondoosebd se get kia h
+            _id : this.id, // mongoosebd se get kia h
         },
         process.env.REFRESH_TOKEN_SECRET,
         {
-            expireIn : process.env.REFRESH_TOKEN_EXPIRY 
+            expiresIn : process.env.REFRESH_TOKEN_EXPIRY 
         }
     )
 }
