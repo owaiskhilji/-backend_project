@@ -189,17 +189,17 @@ return res
 const refreshAccessToken = asyncHendler(async(req,res)=>{
 const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
 if(!incomingRefreshToken){
-  throw new ApiError(401, "unauthorized request")
+  throw new apiError(401, "unauthorized request")
 }
 try{
   const decodeToken = jwt.verify(incomingRefreshToken,process.env.REFRESH_TOKEN_SECRET)
   const user =await User.findById(decodeToken?._id)
   
   if (!user) {
-    throw new ApiError(401, "Invalid refresh token")
+    throw new apiError(401, "Invalid refresh token")
   }
   if(incomingRefreshToken !== user?.refreshToken){
-    throw new ApiError(401, "Refresh token is expired or used")
+    throw new apiError(401, "Refresh token is expired or used")
 }
 
 const {accessToken, newRefreshToken }=await generateAccessAndRefreshyTokens(user._id)
@@ -212,9 +212,10 @@ return res
 .status(200)
 .clearCookie("accessToken",accessToken, options)
 .clearCookie("refreshToken" ,newRefreshToken, options)
-.json(200,{
+.json(
+  new ApiResponse(200,{
   accessToken,refreshToken:newRefreshToken
-},"Access Token Refreshed"
+},"Access Token Refreshed")
 )
 
 
@@ -225,9 +226,155 @@ return res
 
 })
 
+
+
+const chaangeCurrentPassword =asyncHendler(async(req,res)=>{
+  const {oldPassword,newPassword}=req.body
+  const user = await User.findById(user.req?._id)
+  
+  if(!user){
+    throw new apiError(404, "user not found")
+  }
+  const isCorrectPassword =await user.inCorrectPassword(oldPassword)
+  if(!isCorrectPassword){
+    throw new apiError(401, "Invalid old password")
+  }
+  user.password = newPassword
+await user.save({validateBeforeSave:false})
+
+
+return res 
+.status(200)
+.json(
+  new ApiResponse(200
+  ,{},
+  "new passowrd changed successFully")
+)
+
+
+})
+
+const getCurrentUser =asyncHendler(async(req,res)=>{
+  
+return res 
+.status(200)
+.json(
+  new ApiResponse(200
+  ,
+    req.user
+  ,
+  "get current user fetched"
+)
+)
+})
+  
+const updateUser =asyncHendler(async(req,res)=>{
+  const {fullName,username,email}=req.body
+  const user =await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set:{
+        fullName,
+        username,
+        email
+      }
+    },
+    {new:true}
+  )
+return res 
+.status(200)
+.json(
+  new ApiResponse(200
+  ,
+  user
+  ,
+  "user data updated successfully"
+)
+)
+})
+   
+
+
+const updateAvatar =asyncHendler(async(req,res)=>{
+  const updateAvatar=req.file?.path
+
+  console.log("Avatar",updateAvatar)
+if(!updateAvatar){
+  throw new apiError(401,"invalid updateAvatar")
+  }
+  const avatar = await uploadFileCloudinary(updateAvatar)
+  if(!avatar.url){
+    throw new apiError(401,"while updating on avatar")
+    }
+
+  const user =await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set:{
+        avatar:avatar.url
+      }
+    },
+    {new:true}
+  ).select("-password")
+return res 
+.status(200)
+.json(
+  new ApiResponse(200
+  ,
+  user
+  ,
+  "avatar image updated successfully"
+)
+)
+})
+
+const updatecoverImage =asyncHendler(async(req,res)=>{
+  const updateCoverImage=req.file?.path
+
+  console.log("Avatar",updateCoverImage)
+if(!updateCoverImage){
+  throw new apiError(401,"invalid updateCoverImag")
+  }
+  const coverImage = await uploadFileCloudinary(updateCoverImage)
+  if(!coverImage.url){
+    throw new apiError(401,"while updating on coverImage")
+    }
+
+  const user =await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set:{
+        coverImage:coverImage.url
+      }
+    },
+    {new:true}
+  ).select("-password")
+return res 
+.status(200)
+.json(
+  new ApiResponse(200
+  ,
+  user
+  ,
+  "cover image updated successfully"
+)
+)
+})
+
+
+
+
+
+
+
+
 export {
   registerUser,
   loginUser,
   logoutUser,
-  refreshAccessToken
+  refreshAccessToken,
+  chaangeCurrentPassword,
+  getCurrentUser,
+  updateAvatar,
+  updatecoverImage
 };
