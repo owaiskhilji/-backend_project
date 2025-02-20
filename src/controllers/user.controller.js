@@ -4,6 +4,8 @@ import { User } from "../models/user.model.js";
 import { asyncHendler } from "../utils/asyncHendler.js";
 import { uploadFileCloudinary } from "../utils/cloudinary.fileUpload.js";
 import { ApiResponse } from "../utils/apiResponse.js";
+import req from "express/lib/request.js";
+import mongoose from "mongoose";
 
 const generateAccessAndRefreshyTokens = async(userId) => {
 try {
@@ -363,6 +365,142 @@ return res
 
 
 
+const getUserChannelProfile = asyncHendler(async(req,res)=>{
+   const {username} = req.params
+   if (!username.trim()) {
+    throw new apiError(404,"username is missing");
+   }
+const channel = await User.aggregate([
+  {
+    $match:{
+      username:username
+    }
+  },
+  {
+    $lookup:{
+      from:"subscriptions",
+      localField:"_id",
+      foreignField:"Channel",
+      as : "subscribers"
+    }
+  },
+  {
+    $lookup:{
+      from:"subscriptions",
+      localField:"_id",
+      foreignField:"Subscriber",
+      as : "subscribedBy"
+    }
+  },
+  {
+    $addFields:{
+      subscriberCount:{
+        $size:"$subscribers"
+      },
+      subscribedToCount:{
+        $size:"$subscribedBy"
+      },
+      isSubscribed:{
+      $cond: {
+        if:{$in:[req.user?._id,"$subscribers.Subscriber"]},
+        then:true,
+        else:false
+      }
+    }
+  }
+  },
+    {
+      $project:{
+        _id:1,
+        username:1,
+        avatar:1,
+        coverImage:1,
+        fullName:1,
+        email:1,
+        subscriberCount:1,
+        subscribedToCount:1,
+        isSubscribed:1
+  
+    
+  }
+}
+])
+
+if(!channel?.length){
+throw new apiError(404,"channel not found");
+}
+console.log("CHANNAL",channel)
+return res
+ .status(200)
+ .json(
+  new ApiResponse(
+    200, 
+    channel[0],
+     "user channel profile fetched successfully")
+    );
+
+})
+
+
+const getWatchHistory = asyncHendler(async(req,res)=>{
+  const user = await User.aggregate([
+    {
+        $match: {
+        _id: new mongoose.Types.ObjectId(req.user._id)
+        }
+    },
+    {
+        $lookup: {
+            from: "videos",
+            localField: "watchHistory",
+            foreignField: "_id",
+            as: "watchHistory",
+            pipeline: [
+                {
+                    $lookup: {
+                        from: "users",
+                        localField: "owner",
+                        foreignField: "_id",
+                        as: "owner",
+                        pipeline: [
+                            {
+                                $project: {
+                                    fullName: 1,
+                                    username: 1,
+                                    avatar: 1
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    $addFields:{
+                        owner:{
+                            $first: "$owner"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+])
+if (!user) {
+  throw new apiError(404,"user not found");
+  
+}
+console.log("USER",user)
+return res
+ .status(200)
+ .json(
+  new ApiResponse(
+    200, 
+    user[0].watchHistory,
+     "user watch history fetched successfully"))
+})
+
+
+
+
 
 
 
@@ -375,6 +513,9 @@ export {
   refreshAccessToken,
   chaangeCurrentPassword,
   getCurrentUser,
+  updateUser,
   updateAvatar,
-  updatecoverImage
+  updatecoverImage,
+  getUserChannelProfile,
+  getWatchHistory
 };
